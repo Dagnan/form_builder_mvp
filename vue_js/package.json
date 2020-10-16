@@ -1,0 +1,8 @@
+{
+  "name": "vue-material",
+  "scripts": {
+    "start": "serve",
+    "build": "webpack"
+  },
+
+}

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tree View</title>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/sortablejs"></script>
+    <script src="https://unpkg.com/vuedraggable"></script>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+
+    <script type="text/x-template" id="list-item-template">
+      <li>
+        <div>
+          {{ item.name }}
+        </div>
+      </li>
+    </script>
+
+    <!-- item template -->
+    <script type="text/x-template" id="item-template">
+      <li>
+        <div
+          :class="{bold: isFolder}"
+          @click="toggle"
+          @dblclick="makeFolder">
+          {{ item.name }}
+          <span v-if="isFolder">[{{ isOpen ? '-' : '+' }}]</span>
+        </div>
+        <ul v-show="isOpen" v-if="isFolder">
+          <tree-item
+            class="item"
+            v-for="(child, index) in item.children"
+            :key="index"
+            :item="child"
+            @make-folder="$emit('make-folder', $event)"
+            @add-item="$emit('add-item', $event)"
+          ></tree-item>
+          <li class="add" @click="$emit('add-item', item)">+</li>
+        </ul>
+      </li>
+    </script>
+  </head>
+  <body>
+
+    <div id="drag-demo">
+    <draggable v-model="myArray" group="people" @end="onEnd" @change="handleOnChange">
+       <div v-for="element in myArray" :key="element.id">{{element.name}}</div>
+    </draggable>
+    </div>
+
+    <hr />
+
+    <p>
+      My List
+    </p>
+    <ul id="my-list-demo">
+      <list-item
+        v-for="item in myList"
+        v-bind:item="item"
+        v-bind:key="item.id"
+      ></list-item>
+      <!-- <li v-for="item in myList">
+      {{ item.name }}
+      </li> -->
+    </ul>
+
+    <hr />
+
+    <!-- the demo root element -->
+    <ul id="demo">
+      <tree-item
+        class="item"
+        :item="treeData"
+        @make-folder="makeFolder"
+        @add-item="addItem"
+      ></tree-item>
+    </ul>
+
+    <script>
+      // demo data
+      var treeData = {
+        name: "My Tree",
+        children: [
+          { name: "hello" },
+          { name: "wat" },
+          {
+            name: "child folder",
+            children: [
+              {
+                name: "child folder",
+                children: [{ name: "hello" }, { name: "wat" }]
+              },
+              { name: "hello" },
+              { name: "wat" },
+              {
+                name: "child folder",
+                children: [{ name: "hello" }, { name: "wat" }]
+              }
+            ]
+          }
+        ]
+      };
+
+      // define the tree-item component
+      Vue.component("tree-item", {
+        template: "#item-template",
+        props: {
+          item: Object
+        },
+        data: function() {
+          return {
+            isOpen: false
+          };
+        },
+        computed: {
+          isFolder: function() {
+            return this.item.children && this.item.children.length;
+          }
+        },
+        methods: {
+          toggle: function() {
+            if (this.isFolder) {
+              this.isOpen = !this.isOpen;
+            }
+          },
+          makeFolder: function() {
+            if (!this.isFolder) {
+              this.$emit("make-folder", this.item);
+              this.isOpen = true;
+            }
+          }
+        }
+      });
+
+      Vue.component("list-item", {
+        template: "#list-item-template",
+        props: ['item'],
+        data: function() {
+          return {};
+        },
+      });
+
+      var myList = [
+        { id: 0, name: "hello" },
+        { id: 1, name: "foo" },
+        { id: 2, name: "bar" }
+      ]
+
+      var startList = new Vue({
+        el: "#my-list-demo",
+        data: {
+          myList: myList
+        },
+        methods: {
+          fooFunction: function() {
+            alert('foo');
+          }
+        }
+      });
+
+      // boot up the demo
+      var demo = new Vue({
+        el: "#demo",
+        data: {
+          treeData: treeData
+        },
+        methods: {
+          makeFolder: function(item) {
+            Vue.set(item, "children", []);
+            this.addItem(item);
+          },
+          addItem: function(item) {
+            item.children.push({
+              name: "new stuff"
+            });
+          }
+        }
+      });
+
+      var draggable = new Vue({
+        el: "#drag-demo",
+        data: {
+          myArray: myList
+        },
+        methods: {
+          onEnd: function(e) {
+            console.log(e);
+          },
+          handleOnChange: function(e) {
+            console.log(e);
+          },
+        }
+      });
+
+
+    </script>
+  </body>
+</html>
